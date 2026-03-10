@@ -10,3 +10,5 @@ build/
 test_api.db
 *.pt
 *.pkl
+
+/documentation/
