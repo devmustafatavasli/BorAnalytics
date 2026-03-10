@@ -4,7 +4,11 @@ import logging
 import joblib
 import pandas as pd
 import numpy as np
-import shap
+try:
+    import shap
+    SHAP_AVAILABLE = True
+except ImportError:
+    SHAP_AVAILABLE = False
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
@@ -22,6 +26,10 @@ def explain_predictions(db_engine):
     Computes SHAP feature importance for XGBoost predictions.
     Matches prediction structure and inserts 3 top features into shap_explanations table.
     """
+    if not SHAP_AVAILABLE:
+        logger.warning("SHAP library not found. SHAP calculations must occur offline.")
+        return
+
     if not os.path.exists(MODEL_PATH):
         logger.warning(f"XGBoost model not found at {MODEL_PATH}. Skipping SHAP explanations.")
         return
@@ -94,6 +102,9 @@ def generate_explanation_text(prediction_id: str, db_engine) -> str:
     """
     Queries shap_explanations and returns a dynamically formatted human-readable sentence.
     """
+    if not SHAP_AVAILABLE:
+        return "SHAP explanations are computed offline and stored in the database."
+
     query = """
     SELECT feature_name, shap_value, rank 
     FROM shap_explanations 

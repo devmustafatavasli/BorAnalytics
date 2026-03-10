@@ -7,11 +7,16 @@ from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert
 
 # Ensure NeuralForecast and HierarchicalForecast imports
-from neuralforecast import NeuralForecast
-from neuralforecast.models import NHITS
-from hierarchicalforecast.core import HierarchicalReconciliation
-from hierarchicalforecast.methods import MinTrace
-from hierarchicalforecast.evaluation import HierarchicalEvaluation
+try:
+    from neuralforecast import NeuralForecast
+    from neuralforecast.models import NHITS
+    from hierarchicalforecast.core import HierarchicalReconciliation
+    from hierarchicalforecast.methods import MinTrace
+    from hierarchicalforecast.evaluation import HierarchicalEvaluation
+    import torch
+    FORECAST_AVAILABLE = True
+except ImportError:
+    FORECAST_AVAILABLE = False
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from db.database import engine, SessionLocal
@@ -22,6 +27,9 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def train_hierarchical_forecast(db_engine):
+    if not FORECAST_AVAILABLE:
+        raise RuntimeError("Forecasting libraries not available in API environment. Run via GitHub Actions ETL pipeline.")
+        
     Y_df, S_df, tags = prepare_hierarchical_data(db_engine)
     if Y_df.empty:
         logger.error("Empty data matrix. Aborting NHITS.")

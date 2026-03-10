@@ -1,0 +1,9 @@
+-r requirements.api.txt
+torch
+neuralforecast
+hierarchicalforecast
+statsforecast
+shap
+numba
+pdfplumber
+pdfminer.six

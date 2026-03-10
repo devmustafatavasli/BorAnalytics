@@ -24,13 +24,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.etl.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Install dependencies
         working-directory: .
-        run: pip install -r backend/requirements.txt
+        run: pip install -r backend/requirements.etl.txt
 
       - name: Fetch UN Comtrade data
         working-directory: .

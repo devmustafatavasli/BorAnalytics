@@ -14,6 +14,13 @@ logger = logging.getLogger(__name__)
 
 from ml.hierarchical_data_prep import prepare_hierarchical_data
 
+try:
+    from statsforecast import StatsForecast
+    from statsforecast.models import Naive, SeasonalNaive
+    STATSFORECAST_AVAILABLE = True
+except ImportError:
+    STATSFORECAST_AVAILABLE = False
+
 def evaluate_all_models(db_engine, test_start=2019, test_end=2023):
     """
     Evaluates Naive, SeasonalNaive, XGBoost, and NHITS
