@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 from db.database import get_db
@@ -15,12 +15,17 @@ class PriceIndexResponse(BaseModel):
     unit_price_usd_per_tonne: float
     price_z_score: float
     is_anomaly_price: bool
+    unit_price_try_per_tonne: Optional[float] = None
+    unit_price_usd_real_2010: Optional[float] = None
+    try_z_score: Optional[float] = None
+    is_anomaly_try: Optional[bool] = None
 
 @router.get("/price-index", response_model=List[PriceIndexResponse])
 def get_price_index(product: str, db: Session = Depends(get_db)):
     query = """
     SELECT px.year, p.name as product_name, p.hs_code, 
-           px.unit_price_usd_per_tonne, px.price_z_score, px.is_anomaly_price
+           px.unit_price_usd_per_tonne, px.price_z_score, px.is_anomaly_price,
+           px.unit_price_try_per_tonne, px.unit_price_usd_real_2010, px.try_z_score, px.is_anomaly_try
     FROM price_index px
     JOIN products p ON px.product_id = p.id
     WHERE p.hs_code = :hs

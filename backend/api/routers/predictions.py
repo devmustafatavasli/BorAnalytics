@@ -72,6 +72,8 @@ def get_demand_forecast(
         rmse=latest_run.rmse,
         forecasts=forecasts
     )
+<<<<<<< Updated upstream
+=======
 
 class HierarchicalForecastResponse(BaseModel):
     level: str
@@ -123,3 +125,51 @@ def get_explanation(prediction_id: str, db: Session = Depends(get_db)):
         
     feats = [FeatureContribution(feature_name=r.feature_name, shap_value=r.shap_value, rank=r.rank, direction="positive" if r.shap_value > 0 else "negative") for r in results]
     return ExplanationResponse(prediction_id=prediction_id, explanation_text=text_desc, features=feats)
+
+class ModelEvaluationResponse(BaseModel):
+    model_name: str
+    hierarchy_level: str
+    unique_id: str
+    mae: Optional[float]
+    rmse: Optional[float]
+    mase: Optional[float]
+    crps: Optional[float]
+    dm_statistic: Optional[float]
+    dm_pvalue: Optional[float]
+    eval_set_start: int
+    eval_set_end: int
+
+@router.get("/evaluation", response_model=List[ModelEvaluationResponse])
+def get_model_evaluation(model_name: Optional[str] = None, level: Optional[str] = None, db: Session = Depends(get_db)):
+    query = """
+    SELECT model_name, hierarchy_level, unique_id, mae, rmse, mase, crps, 
+           dm_statistic, dm_pvalue, eval_set_start, eval_set_end
+    FROM model_evaluations WHERE 1=1
+    """
+    params = {}
+    if model_name:
+        query += " AND model_name = :m"
+        params['m'] = model_name
+    if level:
+        query += " AND hierarchy_level = :l"
+        params['l'] = level
+        
+    results = db.execute(text(query), params).fetchall()
+    return [dict(r._mapping) if hasattr(r, '_mapping') else r._asdict() for r in results]
+
+import pandas as pd
+import numpy as np
+
+@router.get("/evaluation/summary")
+def get_evaluation_summary_endpoint(db: Session = Depends(get_db)):
+    query = """
+    SELECT unique_id, model_name, mase
+    FROM model_evaluations
+    """
+    df = pd.read_sql(query, db.connection())
+    if df.empty: return []
+    
+    pivot = df.pivot(index='unique_id', columns='model_name', values='mase').reset_index()
+    pivot = pivot.replace({np.nan: None})
+    return pivot.to_dict('records')
+>>>>>>> Stashed changes

@@ -30,6 +30,8 @@ def market_share(start_year: int = 2000, end_year: int = 2023, db: Session = Dep
     """Turkey vs Rest of World market share."""
     results = calc_market_share(db, start_year=start_year, end_year=end_year)
     return results
+<<<<<<< Updated upstream
+=======
 
 class ReconciliationResponse(BaseModel):
     year: int
@@ -83,3 +85,25 @@ def anomalies(year: Optional[int] = None, country_iso3: Optional[str] = None, db
         
     results = db.execute(text(query), params).fetchall()
     return [dict(r._mapping) if hasattr(r, '_mapping') else r._asdict() for r in results]
+
+class ExchangeRateResponse(BaseModel):
+    year: int
+    usd_per_eur: float
+    try_per_eur: float
+    usd_per_try: float
+
+@router.get("/exchange-rates", response_model=List[ExchangeRateResponse])
+def exchange_rates(start_year: Optional[int] = None, end_year: Optional[int] = None, db: Session = Depends(get_db)):
+    query = "SELECT year, usd_per_eur, try_per_eur, usd_per_try FROM exchange_rates WHERE 1=1"
+    params = {}
+    if start_year:
+        query += " AND year >= :sy"
+        params['sy'] = start_year
+    if end_year:
+        query += " AND year <= :ey"
+        params['ey'] = end_year
+    query += " ORDER BY year ASC"
+    
+    results = db.execute(text(query), params).fetchall()
+    return [dict(r._mapping) if hasattr(r, '_mapping') else r._asdict() for r in results]
+>>>>>>> Stashed changes

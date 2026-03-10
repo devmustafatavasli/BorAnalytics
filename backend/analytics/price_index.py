@@ -4,6 +4,7 @@ import logging
 import pandas as pd
 import numpy as np
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from sqlalchemy.dialects.postgresql import insert
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -19,9 +20,9 @@ def compute_price_index(db_engine):
     Loads to price_index Postgres table.
     """
     query = """
-    SELECT year, product_id, trade_value_usd, net_weight_kg 
+    SELECT year, product_id, value_usd, volume_tons 
     FROM exports 
-    WHERE net_weight_kg > 0
+    WHERE volume_tons > 0
     """
     df = pd.read_sql(query, db_engine)
     if df.empty:
@@ -29,7 +30,7 @@ def compute_price_index(db_engine):
         return
 
     # Compute unit_price per transaction
-    df['unit_price_usd_per_tonne'] = df['trade_value_usd'] / (df['net_weight_kg'] / 1000.0)
+    df['unit_price_usd_per_tonne'] = df['value_usd'] / df['volume_tons']
 
     # Median unit price across destination countries per product per year
     yearly_df = df.groupby(['year', 'product_id'])['unit_price_usd_per_tonne'].median().reset_index()
@@ -76,7 +77,8 @@ def get_price_series(db_engine, hs_code: str) -> pd.DataFrame:
     Fetches the full time series out of price_index. 
     """
     query = """
-    SELECT px.year, px.unit_price_usd_per_tonne, px.price_z_score, px.is_anomaly_price
+    SELECT px.year, px.unit_price_usd_per_tonne, px.price_z_score, px.is_anomaly_price,
+           px.unit_price_try_per_tonne, px.unit_price_usd_real_2010, px.try_z_score, px.is_anomaly_try
     FROM price_index px
     JOIN products p ON px.product_id = p.id
     WHERE p.hs_code = %s
@@ -84,5 +86,60 @@ def get_price_series(db_engine, hs_code: str) -> pd.DataFrame:
     """
     return pd.read_sql(query, db_engine, params=(hs_code,))
 
+def compute_currency_adjusted_price(db_engine):
+    """
+    Computes TRY unit prices, 2010 constant USD prices, and TRY Z-scores
+    using the ECB exchange_rates table mapping. Updates price_index directly.
+    """
+    fetch_query = """
+    SELECT px.id as px_id, px.year, px.product_id, px.unit_price_usd_per_tonne, er.usd_per_try
+    FROM price_index px
+    JOIN exchange_rates er ON px.year = er.year
+    """
+    df = pd.read_sql(fetch_query, db_engine)
+    if df.empty:
+        logger.warning("No overlapping pricing / exchange rate data. Skipping currency adjustment.")
+        return
+        
+    df['unit_price_try_per_tonne'] = df['unit_price_usd_per_tonne'] * df['usd_per_try']
+    
+    # Identify 2010 rate for constant indexing
+    try:
+        usd_try_2010 = df[df['year'] == 2010]['usd_per_try'].values[0]
+    except IndexError:
+        logger.warning("Base year 2010 missing in exchange_rates map. Aborting real USD calc.")
+        return
+        
+    df['unit_price_usd_real_2010'] = df['unit_price_usd_per_tonne'] * (df['usd_per_try'] / usd_try_2010)
+
+    # Compute rolling 10 year z-scores on the TRY series strictly
+    df = df.sort_values(by=['product_id', 'year'])
+    df['try_rolling_mean'] = df.groupby('product_id')['unit_price_try_per_tonne'].transform(lambda x: x.rolling(10, min_periods=1).mean())
+    df['try_rolling_std'] = df.groupby('product_id')['unit_price_try_per_tonne'].transform(lambda x: x.rolling(10, min_periods=1).std().fillna(1.0).replace(0, 1.0))
+    df['try_z_score'] = (df['unit_price_try_per_tonne'] - df['try_rolling_mean']) / df['try_rolling_std']
+    df['is_anomaly_try'] = df['try_z_score'].abs() > 2.0
+    
+    update_stmt = text("""
+        UPDATE price_index
+        SET unit_price_try_per_tonne = :try_px,
+            unit_price_usd_real_2010 = :usd_real,
+            try_z_score = :try_z,
+            is_anomaly_try = :is_anom
+        WHERE id = :px_id
+    """)
+
+    with db_engine.begin() as conn:
+        for _, row in df.iterrows():
+            conn.execute(update_stmt, {
+                "try_px": float(row['unit_price_try_per_tonne']),
+                "usd_real": float(row['unit_price_usd_real_2010']),
+                "try_z": float(row['try_z_score']),
+                "is_anom": bool(row['is_anomaly_try']),
+                "px_id": int(row['px_id'])
+            })
+            
+    logger.info(f"Currency adjusted indices mapped securely for {len(df)} records.")
+
 if __name__ == "__main__":
     compute_price_index(engine)
+    compute_currency_adjusted_price(engine)

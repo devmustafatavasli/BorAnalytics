@@ -27,6 +27,8 @@ All data used in this project is sourced from publicly available, legally access
 - **Legal Basis**: Publicly published reports.
 
 > Note: HS Commodity Code Reference: 2528 covers natural borates and concentrates; related codes 2840 (borates) and 2841 (perborates) are also included where available.
+<<<<<<< Updated upstream
+=======
 
 ## 5. USGS Mineral Commodity Summaries (v2)
 
@@ -38,3 +40,10 @@ All data used in this project is sourced from publicly available, legally access
 
 - **Data Provided**: Secondary declarations from top 30 global importing nations tracking Turkish export gaps.
 - **Access Method**: Free REST API `comtradeapi.un.org` (Flow=M).
+
+## 7. European Central Bank (ECB) Statistical Data Warehouse (v3)
+
+- **Data Provided**: Annual average USD/EUR and TRY/EUR mappings generating direct USD/TRY cross-rates.
+- **Access Method**: `sdw-wsrest.ecb.europa.eu` API endpoints safely.
+- **Legal Basis**: Open-source domain logic.
+>>>>>>> Stashed changes
