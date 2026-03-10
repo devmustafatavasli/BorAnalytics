@@ -6,6 +6,7 @@ import Trends from './pages/Trends';
 import TradeMap from './pages/TradeMap';
 import Predictions from './pages/Predictions';
 import Market from './pages/Market';
+import NetworkPage from './pages/NetworkPage';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/map" element={<TradeMap />} />
           <Route path="/predictions" element={<Predictions />} />
           <Route path="/market" element={<Market />} />
+          <Route path="/network" element={<NetworkPage />} />
         </Routes>
       </Layout>
     </Router>

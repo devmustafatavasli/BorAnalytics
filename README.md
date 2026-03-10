@@ -18,17 +18,18 @@ Browser -> Vercel (React SPA) -> Render (FastAPI Web Service) -> Supabase (Postg
 ### 🌍 Cloud Infrastructure
 
 1. **Supabase (PostgreSQL)**: Handles relational modeling tracking millions of metrics dynamically.
-2. **Render (Backend API)**: Serves internal `uvicorn` instances resolving AI prediction maps utilizing `python-dotenv`. An internal `APScheduler` tracks `/health` preserving limits.
-3. **Vercel (Frontend UI)**: Distributes global React bundles statically mapping cached endpoints.
-4. **GitHub Actions**: Executes `.github/workflows/monthly_etl.yml` every 1st of the month, natively iterating 9 internal Python scripts fetching UN Comtrade and ECB values avoiding stale metrics completely natively.
+2. **Render (Backend API)**: Serves internal `uvicorn` instances resolving AI prediction maps utilizing `python-dotenv`.
+3. **Neo4j AuraDB (Graph)**: Organizes Countries and Events into a Causal Knowledge Graph for tracing dependency algorithms organically.
+4. **Vercel (Frontend UI)**: Distributes global React bundles statically mapping cached endpoints.
+5. **GitHub Actions**: Executes `.github/workflows/monthly_etl.yml` every 1st of the month, natively iterating Python scripts fetching UN Comtrade and scraping events natively.
 
 ### ⚡ Quick Start Deployment
 
-1. Set up a free Supabase Postgres instance and map its URL as `DATABASE_URL` everywhere.
-2. Push this repository to GitHub natively.
-3. Track `/` on Render linking the GitHub backend parsing Python environments natively setting `ALLOWED_ORIGINS` to your Vercel URL.
-4. Track `/frontend` on Vercel setting `VITE_API_BASE_URL` logically bound to Render.
-5. GitHub runners automatically catch and execute schema populations natively.
+1. Set up a free Supabase Postgres instance and map its URL as `DATABASE_URL`.
+2. Set up a free Neo4j AuraDB instance and map `NEO4J_URI`, `NEO4J_USERNAME`, and `NEO4J_PASSWORD`.
+3. Push this repository to GitHub natively and add secrets.
+4. Track `/` on Render linking the GitHub backend setting `ALLOWED_ORIGINS` to your Vercel URL.
+5. Track `/frontend` on Vercel setting `VITE_API_BASE_URL` logically bound to Render.
 
 ## 📊 Data Sources Setup
 
@@ -38,3 +39,4 @@ The system automatically tracks these boundaries:
 - **World Bank API**: Direct GDP mapping and macroeconomic inflation boundaries.
 - **UN Comtrade API**: Bilateral logic fetching Turkish export mirrors.
 - **European Central Bank (ECB) SDMX**: `USD/EUR` and `TRY/EUR` continuous currency tracking.
+- **Eti Maden Platform**: Automated Python web scraper securely extracting structural mining event metadata dynamically.

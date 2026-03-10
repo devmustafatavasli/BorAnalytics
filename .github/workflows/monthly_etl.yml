@@ -47,6 +47,23 @@ jobs:
         run: python -m backend.etl.ecb_fetcher
         continue-on-error: false
 
+      - name: Scrape Eti Maden events
+        working-directory: .
+        run: python -m backend.scrapers.etimaden_scraper
+        continue-on-error: true
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Build Neo4j knowledge graph
+        working-directory: .
+        run: python -m backend.graph.trade_network
+        continue-on-error: true
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEO4J_URI: ${{ secrets.NEO4J_URI }}
+          NEO4J_USERNAME: ${{ secrets.NEO4J_USERNAME }}
+          NEO4J_PASSWORD: ${{ secrets.NEO4J_PASSWORD }}
+
       - name: Compute price index
         working-directory: .
         run: python -m backend.analytics.price_index

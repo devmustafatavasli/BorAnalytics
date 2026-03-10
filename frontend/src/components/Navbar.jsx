@@ -9,6 +9,14 @@ const Navbar = () => {
           <Activity className="h-6 w-6" />
           <span>BorAnalytics</span>
         </div>
+        <nav className="ml-8 hidden md:flex items-center gap-6 text-sm font-medium text-gray-500">
+          <a href="/" className="hover:text-primary-600 transition-colors">Overview</a>
+          <a href="/trends" className="hover:text-primary-600 transition-colors">Trends</a>
+          <a href="/map" className="hover:text-primary-600 transition-colors">Trade Map</a>
+          <a href="/market" className="hover:text-primary-600 transition-colors">Market Share</a>
+          <a href="/predictions" className="hover:text-primary-600 transition-colors">Predictions</a>
+          <a href="/network" className="text-primary-600 hover:text-primary-700 transition-colors">Trade Network</a>
+        </nav>
       </div>
     </header>
   );
