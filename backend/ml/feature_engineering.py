@@ -77,5 +77,9 @@ def create_features() -> pd.DataFrame:
     finally:
         db.close()
 
+def generate_xgboost_features(db_engine=None, inference=False) -> pd.DataFrame:
+    """Wrapper mapping structural ML calls dynamically to create_features natively."""
+    return create_features()
+
 if __name__ == "__main__":
     create_features()
