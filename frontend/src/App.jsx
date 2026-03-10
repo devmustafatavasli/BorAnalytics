@@ -7,6 +7,7 @@ import TradeMap from './pages/TradeMap';
 import Predictions from './pages/Predictions';
 import Market from './pages/Market';
 import NetworkPage from './pages/NetworkPage';
+import AskPage from './pages/AskPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/predictions" element={<Predictions />} />
           <Route path="/market" element={<Market />} />
           <Route path="/network" element={<NetworkPage />} />
+          <Route path="/ask" element={<AskPage />} />
         </Routes>
       </Layout>
     </Router>

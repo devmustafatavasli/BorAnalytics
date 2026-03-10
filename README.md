@@ -20,16 +20,18 @@ Browser -> Vercel (React SPA) -> Render (FastAPI Web Service) -> Supabase (Postg
 1. **Supabase (PostgreSQL)**: Handles relational modeling tracking millions of metrics dynamically.
 2. **Render (Backend API)**: Serves internal `uvicorn` instances resolving AI prediction maps utilizing `python-dotenv`.
 3. **Neo4j AuraDB (Graph)**: Organizes Countries and Events into a Causal Knowledge Graph for tracing dependency algorithms organically.
-4. **Vercel (Frontend UI)**: Distributes global React bundles statically mapping cached endpoints.
-5. **GitHub Actions**: Executes `.github/workflows/monthly_etl.yml` every 1st of the month, natively iterating Python scripts fetching UN Comtrade and scraping events natively.
+4. **Vercel (Frontend UI)**: Distributes global React bundles statically mapping cached endpoints. Provides the Conversational Interface organically.
+5. **Gemini Data Router**: `gemini-2.0-flash` processes plain-text questions into strict `SQL` or Cypher `MATCH` syntactical patterns natively evaluating constraints.
+6. **GitHub Actions**: Executes `.github/workflows/monthly_etl.yml` every 1st of the month, natively iterating Python scripts fetching UN Comtrade and scraping events natively.
 
 ### ⚡ Quick Start Deployment
 
 1. Set up a free Supabase Postgres instance and map its URL as `DATABASE_URL`.
 2. Set up a free Neo4j AuraDB instance and map `NEO4J_URI`, `NEO4J_USERNAME`, and `NEO4J_PASSWORD`.
-3. Push this repository to GitHub natively and add secrets.
-4. Track `/` on Render linking the GitHub backend setting `ALLOWED_ORIGINS` to your Vercel URL.
-5. Track `/frontend` on Vercel setting `VITE_API_BASE_URL` logically bound to Render.
+3. Generate a free Google AI Studio key and map `GEMINI_API_KEY` for the conversational interface.
+4. Push this repository to GitHub natively and add secrets.
+5. Track `/` on Render linking the GitHub backend setting `ALLOWED_ORIGINS` to your Vercel URL.
+6. Track `/frontend` on Vercel setting `VITE_API_BASE_URL` logically bound to Render.
 
 ## 📊 Data Sources Setup
 

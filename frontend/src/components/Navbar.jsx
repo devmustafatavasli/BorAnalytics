@@ -15,7 +15,8 @@ const Navbar = () => {
           <a href="/map" className="hover:text-primary-600 transition-colors">Trade Map</a>
           <a href="/market" className="hover:text-primary-600 transition-colors">Market Share</a>
           <a href="/predictions" className="hover:text-primary-600 transition-colors">Predictions</a>
-          <a href="/network" className="text-primary-600 hover:text-primary-700 transition-colors">Trade Network</a>
+          <a href="/network" className="hover:text-primary-600 transition-colors">Trade Network</a>
+          <a href="/ask" className="text-primary-600 hover:text-primary-700 transition-colors border border-primary-200 px-3 py-1 rounded shadow-sm bg-primary-50">Ask AI</a>
         </nav>
       </div>
     </header>

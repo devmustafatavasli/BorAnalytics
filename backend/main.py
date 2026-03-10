@@ -4,7 +4,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import core, analytics, predictions, supply, price_index, scenarios, events, graph
+from api.routers import core, analytics, predictions, supply, price_index, scenarios, events, graph, nl_query
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -65,6 +65,7 @@ app.include_router(price_index.router)
 app.include_router(scenarios.router)
 app.include_router(events.router, prefix='/api', tags=['events'])
 app.include_router(graph.router, prefix='/api', tags=['graph'])
+app.include_router(nl_query.router, prefix='/api', tags=['nl-query'])
 
 @app.get("/")
 def read_root():
