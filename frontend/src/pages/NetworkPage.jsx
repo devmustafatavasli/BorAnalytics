@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import ForceGraph2D from 'react-force-graph-2d';
-import axios from 'axios';
+import { ForceGraph2D } from 'react-force-graph';
 import api from '../api/client';
 
 const EVENT_TYPE_COLORS = {

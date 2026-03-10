@@ -41,7 +41,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="BorAnalytics API",
     description="Backend API for BorAnalytics Global Boron Trade ML Dashboard",
-    version="1.0.0",
+    version="6.0.0",
     lifespan=lifespan
 )
 
@@ -74,4 +74,4 @@ def read_root():
 @app.get("/health")
 def health_check():
     """Lightweight endpoint confirming structural availability globally."""
-    return {"status": "ok", "version": "v4", "timestamp": datetime.utcnow().isoformat()}
+    return {"status": "ok", "version": "v6", "timestamp": datetime.utcnow().isoformat()}
