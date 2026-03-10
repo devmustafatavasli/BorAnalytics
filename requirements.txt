@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pandas
+numpy
+requests
+scikit-learn
+xgboost
+torch
+torchvision
+pdfplumber
+python-dotenv
+pytest
+httpx
+alembic
