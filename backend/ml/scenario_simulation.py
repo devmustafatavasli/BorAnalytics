@@ -9,7 +9,7 @@ from sqlalchemy import text
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from db.database import engine
-from feature_engineering import generate_xgboost_features
+from ml.feature_engineering import generate_xgboost_features
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
