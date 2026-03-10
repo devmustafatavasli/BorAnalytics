@@ -1,0 +1,79 @@
+name: Monthly ETL Pipeline
+
+on:
+  schedule:
+    - cron: "0 2 1 * *" # 02:00 UTC on the 1st of every month
+  workflow_dispatch: # Enables manual triggering
+
+jobs:
+  run-etl:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        working-directory: .
+        run: pip install -r backend/requirements.txt
+
+      - name: Fetch UN Comtrade data
+        working-directory: .
+        run: python -m backend.etl.comtrade_fetcher
+        continue-on-error: false
+
+      - name: Fetch USGS supply data
+        working-directory: .
+        run: python -m backend.etl.usgs_fetcher
+        continue-on-error: false
+
+      - name: Fetch ECB exchange rates
+        working-directory: .
+        run: python -m backend.etl.ecb_fetcher
+        continue-on-error: false
+
+      - name: Compute price index
+        working-directory: .
+        run: python -m backend.analytics.price_index
+        continue-on-error: false
+
+      - name: Bilateral reconciliation
+        working-directory: .
+        run: python -m backend.analytics.bilateral_reconciliation
+        continue-on-error: false
+
+      - name: Anomaly attribution
+        working-directory: .
+        run: python -m backend.analytics.anomaly_attribution
+        continue-on-error: false
+
+      - name: Hierarchical forecast (NHITS retraining)
+        working-directory: .
+        run: python -m backend.ml.hierarchical_forecast
+        timeout-minutes: 25
+        continue-on-error: true
+
+      - name: SHAP explainability
+        working-directory: .
+        run: python -m backend.ml.shap_explainer
+        continue-on-error: false
+
+      - name: Model evaluation
+        working-directory: .
+        run: python -m backend.ml.model_evaluator
+        continue-on-error: false

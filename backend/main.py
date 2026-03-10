@@ -7,16 +7,48 @@ from api.routers import core, analytics, predictions, supply, price_index, scena
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+import httpx
+from apscheduler.schedulers.background import BackgroundScheduler
+from contextlib import asynccontextmanager
+from datetime import datetime
+
+scheduler = BackgroundScheduler()
+
+def ping_self():
+    """Background task to ping the health endpoint preventing Render spin-down."""
+    port = os.getenv("PORT", "8000")
+    url = f"http://127.0.0.1:{port}/health"
+    try:
+        # Fire-and-forget synchronous HTTP request for the scheduler 
+        with httpx.Client() as client:
+            client.get(url, timeout=5.0)
+            logger.info(f"Self-ping executed successfully bound to {url}")
+    except Exception as e:
+        logger.warning(f"Self-ping failed gracefully natively: {e}")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    scheduler.add_job(ping_self, 'interval', minutes=10)
+    scheduler.start()
+    logger.info("APScheduler initialized background self-pings.")
+    yield
+    # Shutdown
+    scheduler.shutdown()
+
 app = FastAPI(
     title="BorAnalytics API",
     description="Backend API for BorAnalytics Global Boron Trade ML Dashboard",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
-# CORS configuration for local React frontend
+from config import settings
+
+# CORS configuration for defined frontend domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,3 +65,8 @@ app.include_router(scenarios.router)
 @app.get("/")
 def read_root():
     return {"status": "ok", "message": "Welcome to BorAnalytics API"}
+
+@app.get("/health")
+def health_check():
+    """Lightweight endpoint confirming structural availability globally."""
+    return {"status": "ok", "version": "v4", "timestamp": datetime.utcnow().isoformat()}

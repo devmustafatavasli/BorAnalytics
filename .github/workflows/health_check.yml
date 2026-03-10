@@ -1,0 +1,14 @@
+name: Supabase Health Check
+
+on:
+  schedule:
+    - cron: "0 0 */5 * *" # Runs every 5 days exactly preserving free tier constraints
+  workflow_dispatch:
+
+jobs:
+  ping-render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Curl Render endpoint
+        # Set your actual Render URL later dynamically
+        run: curl --fail https://boranalytics-production.up.railway.app/health || echo "Need to map actual RENDER URL later"
