@@ -3,14 +3,15 @@ import sys
 import logging
 import pandas as pd
 from neo4j import GraphDatabase
-from sqlalchemy.orm import Session
 from sqlalchemy import text
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from db.database import engine, SessionLocal
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def _get_engine():
+    """Lazy import to avoid crashing at module load time if DATABASE_URL is not set."""
+    from db.database import engine
+    return engine
 
 def get_driver():
     uri = os.getenv("NEO4J_URI")
@@ -48,8 +49,7 @@ def build_graph(db_engine, driver):
     JOIN countries c ON e.country_id = c.id
     JOIN products p ON e.product_id = p.id
     """
-    df_trades = pd.read_sql(trade_query, db_engine)
-    
+    df_trades = pd.read_sql(trade_query, db_engine)    
     # 4. Fetch Events
     df_events = pd.read_sql("""
         SELECT id as event_id, event_date, event_year, event_type, title, 
@@ -196,9 +196,9 @@ def run_exposure_query(driver, country_iso3: str) -> dict:
         }
 
 if __name__ == "__main__":
-    from feature_engineering import engine # Fallback structural map
     try:
+        db_engine = _get_engine()
         drv = get_driver()
-        build_graph(engine, drv)
+        build_graph(db_engine, drv)
     except Exception as e:
-        logger.error(f"Failed to build graph natively: {e}")
+        logger.error(f"Failed to build graph: {e}")
