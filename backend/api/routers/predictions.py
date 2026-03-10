@@ -72,8 +72,6 @@ def get_demand_forecast(
         rmse=latest_run.rmse,
         forecasts=forecasts
     )
-<<<<<<< Updated upstream
-=======
 
 class HierarchicalForecastResponse(BaseModel):
     level: str
@@ -172,4 +170,3 @@ def get_evaluation_summary_endpoint(db: Session = Depends(get_db)):
     pivot = df.pivot(index='unique_id', columns='model_name', values='mase').reset_index()
     pivot = pivot.replace({np.nan: None})
     return pivot.to_dict('records')
->>>>>>> Stashed changes

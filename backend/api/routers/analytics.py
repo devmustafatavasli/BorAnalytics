@@ -30,8 +30,6 @@ def market_share(start_year: int = 2000, end_year: int = 2023, db: Session = Dep
     """Turkey vs Rest of World market share."""
     results = calc_market_share(db, start_year=start_year, end_year=end_year)
     return results
-<<<<<<< Updated upstream
-=======
 
 class ReconciliationResponse(BaseModel):
     year: int
@@ -106,4 +104,3 @@ def exchange_rates(start_year: Optional[int] = None, end_year: Optional[int] = N
     
     results = db.execute(text(query), params).fetchall()
     return [dict(r._mapping) if hasattr(r, '_mapping') else r._asdict() for r in results]
->>>>>>> Stashed changes
