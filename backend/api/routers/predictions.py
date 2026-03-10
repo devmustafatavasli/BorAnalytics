@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from pydantic import BaseModel
+from sqlalchemy import text
+from ml.shap_explainer import generate_explanation_text
 
 from db.database import get_db
 from db.models import Prediction, ModelRun, Country, Product
@@ -69,3 +72,54 @@ def get_demand_forecast(
         rmse=latest_run.rmse,
         forecasts=forecasts
     )
+
+class HierarchicalForecastResponse(BaseModel):
+    level: str
+    unique_id: str
+    forecasts: List[ForecastPoint]
+
+@router.get("/hierarchical", response_model=HierarchicalForecastResponse)
+def get_hierarchical(level: str = Query(..., regex="^(global|product|country)$"), 
+                     product: Optional[str] = None, 
+                     country: Optional[str] = None, 
+                     horizon: int = 3, 
+                     db: Session = Depends(get_db)):
+    if level == 'global':
+        uid = 'GLOBAL:TOTAL'
+    elif level == 'product':
+        if not product: raise HTTPException(status_code=400, detail="Product HS Code required for product level")
+        uid = f"PRODUCT:{product}"
+    else:
+        if not product or not country: raise HTTPException(status_code=400, detail="Product and Country required for country level")
+        uid = f"{product}:{country}"
+        
+    query = "SELECT year, predicted_value, lower_ci, upper_ci FROM predictions WHERE model_type='hierarchical_nhits' AND unique_id=:uid ORDER BY year ASC LIMIT :hor"
+    results = db.execute(text(query), {"uid": uid, "hor": horizon}).fetchall()
+    
+    if not results:
+        raise HTTPException(status_code=404, detail="No predictions found for this unique_id.")
+        
+    forecasts = [ForecastPoint(year=r.year, predicted_value=r.predicted_value, lower_ci=r.lower_ci, upper_ci=r.upper_ci) for r in results]
+    return HierarchicalForecastResponse(level=level, unique_id=uid, forecasts=forecasts)
+
+class FeatureContribution(BaseModel):
+    feature_name: str
+    shap_value: float
+    rank: int
+    direction: str
+
+class ExplanationResponse(BaseModel):
+    prediction_id: str
+    explanation_text: str
+    features: List[FeatureContribution]
+
+@router.get("/explanation", response_model=ExplanationResponse)
+def get_explanation(prediction_id: str, db: Session = Depends(get_db)):
+    text_desc = generate_explanation_text(prediction_id, db)
+    query = "SELECT feature_name, shap_value, rank FROM shap_explanations WHERE prediction_id=:pid ORDER BY rank ASC"
+    results = db.execute(text(query), {"pid": prediction_id}).fetchall()
+    if not results:
+        raise HTTPException(status_code=404, detail="No explanation found.")
+        
+    feats = [FeatureContribution(feature_name=r.feature_name, shap_value=r.shap_value, rank=r.rank, direction="positive" if r.shap_value > 0 else "negative") for r in results]
+    return ExplanationResponse(prediction_id=prediction_id, explanation_text=text_desc, features=feats)

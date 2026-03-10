@@ -2,7 +2,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routers import core, analytics, predictions
+from api.routers import core, analytics, predictions, supply, price_index, scenarios
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -26,6 +26,9 @@ app.add_middleware(
 app.include_router(core.router, tags=["Core"])
 app.include_router(analytics.router, tags=["Analytics"])
 app.include_router(predictions.router, tags=["Predictions"])
+app.include_router(supply.router)
+app.include_router(price_index.router)
+app.include_router(scenarios.router)
 
 @app.get("/")
 def read_root():
