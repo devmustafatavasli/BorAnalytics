@@ -73,5 +73,45 @@ def fetch_comtrade_data(reporter_iso3: str = "TUR", hs_code: str = "2528", start
         # Comtrade free tier rate limit is strict
         time.sleep(2) 
 
+MIRROR_DATA_DIR = os.path.join(os.path.dirname(__file__), "../../data/raw/comtrade/mirror")
+TOP_30_IMPORTERS = ["CHN", "USA", "IND", "DEU", "GBR", "KOR", "JPN", "FRA", "BRA", "MEX", "NLD", "ESP", "ITA", "RUS", "TUR", "POL", "BEL", "AUT", "CHE", "SWE", "THA", "MYS", "IDN", "ARG", "SAU", "EGY", "ZAF", "AUS", "CAN", "UKR"]
+
+def fetch_mirror_imports():
+    """Fetches mirror imports statistics from top 30 importing nations reporting on Turkey."""
+    if not API_KEY or API_KEY == "your_un_comtrade_api_key_here":
+        print("Warning: COMTRADE_API_KEY not set in .env. Skipping actual fetch.")
+        return
+        
+    os.makedirs(MIRROR_DATA_DIR, exist_ok=True)
+    
+    for reporter in TOP_30_IMPORTERS:
+        for hs_code in ["2528", "2840", "2841"]:
+            for year in range(2000, 2024):
+                output_file = os.path.join(MIRROR_DATA_DIR, f"{reporter}_{hs_code}_{year}.json")
+                if os.path.exists(output_file):
+                    continue
+                
+                print(f"Fetching mirror data: {reporter} importing {hs_code} from TUR in {year}...")
+                params = {
+                    "reporterCode": reporter,
+                    "partnerCode": 792,  # Turkey
+                    "period": str(year),
+                    "cmdCode": hs_code,
+                    "flowCode": "M",
+                    "subscription-key": API_KEY
+                }
+                
+                try:
+                    response = requests.get(BASE_URL, params=params)
+                    if response.status_code == 200:
+                        with open(output_file, 'w', encoding='utf-8') as f:
+                            json.dump(response.json(), f, ensure_ascii=False, indent=2)
+                    elif response.status_code == 429:
+                        time.sleep(10)
+                except Exception as e:
+                    print(f"Error fetching {year}: {e}")
+                time.sleep(1)
+
 if __name__ == "__main__":
     fetch_comtrade_data()
+    fetch_mirror_imports()
