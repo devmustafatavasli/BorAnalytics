@@ -27,3 +27,14 @@ All data used in this project is sourced from publicly available, legally access
 - **Legal Basis**: Publicly published reports.
 
 > Note: HS Commodity Code Reference: 2528 covers natural borates and concentrates; related codes 2840 (borates) and 2841 (perborates) are also included where available.
+
+## 5. USGS Mineral Commodity Summaries (v2)
+
+- **Data Provided**: Global boron production volumes and active reserves.
+- **Access Method**: ScienceBase API / PDF Parse.
+- **Legal Basis**: Public domain (USGS).
+
+## 6. UN Comtrade Bilateral Mirror Imports (v2)
+
+- **Data Provided**: Secondary declarations from top 30 global importing nations tracking Turkish export gaps.
+- **Access Method**: Free REST API `comtradeapi.un.org` (Flow=M).
